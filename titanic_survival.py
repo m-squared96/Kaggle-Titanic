@@ -7,10 +7,12 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 
 
-class LogisticModel():
+class ModelBuilder():
 
     def __init__(self):
 
@@ -27,20 +29,25 @@ class LogisticModel():
         self.train = train.select_dtypes(include=np.number).drop("Age", axis=1).fillna(value=0)
         self.test = test.select_dtypes(include=np.number).drop("Age", axis=1).fillna(value=0)
 
-    def model_construct(self):
+    def log_construct(self):
 
-        x = self.train.drop(["PassengerId", "Survived"], axis=1)
-        y = self.train["Survived"]
+        logmodel = LogisticModel(self.train, self.test)
+        logmodel.model_construct()
 
-        
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
-        #print(self.train.isnull().sum().sum())
-        self.logmodel = LogisticRegression()
-        self.logmodel.fit(x_train, y_train)
+    def dtree_construct(self):
 
-        predictions = self.logmodel.predict(x_test)
-        print(classification_report(y_test, predictions))
-        print(confusion_matrix(y_test, predictions))
+        dtree = DTreeModel(self.train, self.test)
+        dtree.model_construct()
+
+    def rf_construct(self):
+
+        rf = RFModel(self.train, self.test)
+        rf.model_construct()
+
+    def ada_construct(self):
+
+        ada = AdaBoostModel(self.train, self.test)
+        ada.model_construct()
 
     def submission(self):
 
@@ -162,8 +169,98 @@ class LogisticModel():
 
         if not pd.isnull(x):
             return x
-            
 
-logmodel = LogisticModel()
-logmodel.model_construct()
-logmodel.submission()
+
+class LogisticModel():
+
+    def __init__(self, train, test):
+
+        self.train = train
+        self.test = test
+
+    def model_construct(self):
+
+        x = self.train.drop(["PassengerId", "Survived"], axis=1)
+        y = self.train["Survived"]
+
+        
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
+        #print(self.train.isnull().sum().sum())
+        self.logmodel = LogisticRegression()
+        self.logmodel.fit(x_train, y_train)
+        predictions = self.logmodel.predict(x_test)
+
+        print("\nLogistic Regression Model:")
+        print(classification_report(y_test, predictions))
+        print(confusion_matrix(y_test, predictions))
+
+
+class DTreeModel():
+
+    def __init__(self, train, test):
+
+        self.train = train
+        self.test = test
+
+    def model_construct(self):
+
+        x = self.train.drop(["PassengerId", "Survived"], axis=1)
+        y = self.train["Survived"]                
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
+
+        self.dtreemodel = DecisionTreeClassifier()
+        self.dtreemodel.fit(x_train, y_train)
+        predictions = self.dtreemodel.predict(x_test)
+
+        print("\nDecision Tree Model:")
+        print(classification_report(y_test, predictions))
+        print(confusion_matrix(y_test, predictions))
+
+
+class RFModel():
+
+    def __init__(self, train, test):
+
+        self.train = train
+        self.test = test
+
+    def model_construct(self):
+
+        x = self.train.drop(["PassengerId", "Survived"], axis=1)
+        y = self.train["Survived"]                
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
+
+        self.rfmodel = RandomForestClassifier(n_estimators=500)
+        self.rfmodel.fit(x_train, y_train)
+        predictions = self.rfmodel.predict(x_test)
+
+        print("\nRandom Forest Model:")
+        print(classification_report(y_test, predictions))
+        print(confusion_matrix(y_test, predictions))
+
+class AdaBoostModel():
+
+    def __init__(self, train, test):
+
+        self.train = train
+        self.test = test
+
+    def model_construct(self):
+
+        x = self.train.drop(["PassengerId", "Survived"], axis=1)
+        y = self.train["Survived"]                
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
+
+        self.adamodel = AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=500) , n_estimators=500)
+        self.adamodel.fit(x_train, y_train)
+        predictions = self.adamodel.predict(x_test)
+
+        print("\nAdaBoost Model:")
+        print(classification_report(y_test, predictions))
+        print(confusion_matrix(y_test, predictions))
+
+builder = ModelBuilder()
+builder.log_construct()
+builder.dtree_construct()
+builder.rf_construct()
+builder.ada_construct()
