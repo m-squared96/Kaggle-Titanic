@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 
 
@@ -48,6 +49,11 @@ class ModelBuilder():
 
         ada = AdaBoostModel(self.train, self.test)
         ada.model_construct()
+
+    def svm_construct(self):
+
+        svm = SVMModel(self.train, self.test)
+        svm.model_construct()
 
     def submission(self):
 
@@ -230,13 +236,14 @@ class RFModel():
         y = self.train["Survived"]                
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
 
-        self.rfmodel = RandomForestClassifier(n_estimators=500)
+        self.rfmodel = RandomForestClassifier(n_estimators=1000)
         self.rfmodel.fit(x_train, y_train)
         predictions = self.rfmodel.predict(x_test)
 
         print("\nRandom Forest Model:")
         print(classification_report(y_test, predictions))
         print(confusion_matrix(y_test, predictions))
+
 
 class AdaBoostModel():
 
@@ -259,8 +266,31 @@ class AdaBoostModel():
         print(classification_report(y_test, predictions))
         print(confusion_matrix(y_test, predictions))
 
+class SVMModel():
+
+    def __init__(self, train, test):
+
+        self.train = train
+        self.test = test
+
+    def model_construct(self):
+
+        x = self.train.drop(["PassengerId", "Survived"], axis=1)
+        y = self.train["Survived"]                
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=101)
+
+        self.svcmodel = SVC(C=5.6)
+        self.svcmodel.fit(x_train, y_train)
+        predictions = self.svcmodel.predict(x_test)
+
+        print("\nSVM Model:")
+        print(classification_report(y_test, predictions))
+        print(self.svcmodel.score(x_test, y_test))
+
+
 builder = ModelBuilder()
 builder.log_construct()
 builder.dtree_construct()
 builder.rf_construct()
-builder.ada_construct()
+builder.svm_construct()
+#builder.ada_construct()
